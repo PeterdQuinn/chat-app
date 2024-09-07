@@ -1,61 +1,54 @@
-// components/ChatRoom.js
 import { useEffect, useState } from 'react';
-import io from 'socket.io-client';
-import Message from './Message';
-
-// Create a socket instance (make sure this is outside of the component)
+import io from 'socket.io-client'; // Ensure socket.io is set up
 let socket;
 
-export default function ChatRoom({ roomId }) {
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
+export default function ChatRoom() {
+  const [message, setMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingStatus, setTypingStatus] = useState(''); // To display typing status
 
   useEffect(() => {
-    // Connect to the socket server
-    socket = io();
-
-    // Listen for incoming messages
-    socket.on('chat message', (msg) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
-    });
-
-    return () => {
-      socket.disconnect(); // Disconnect when component unmounts
-    };
+    socketInitializer();
   }, []);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() !== '') {
-      // Emit the message to the server
-      socket.emit('chat message', { sender: 'You', content: newMessage });
-      setNewMessage(''); // Clear the input field
-    }
+  const socketInitializer = async () => {
+    await fetch('/api/socket');
+    socket = io();
+
+    // Listen for the typing event from server
+    socket.on('displayTyping', (data) => {
+      setTypingStatus(data ? `${data.username} is typing...` : '');
+    });
+  };
+
+  // Emit typing event when the user types in the message input
+  const handleTyping = () => {
+    socket.emit('typing', { username: 'User1', typing: true });
+    setTimeout(() => {
+      socket.emit('typing', { username: 'User1', typing: false });
+    }, 2000); // Emit false after 2 seconds of no typing
   };
 
   return (
-    <div className="p-6">
-      <div className="bg-gray-200 p-4 rounded-lg h-64 overflow-y-scroll">
-        {/* Render each message */}
-        {messages.map((msg, index) => (
-          <Message key={index} sender={msg.sender} content={msg.content} />
-        ))}
+    <div className="chat-room">
+      <div className="messages">
+        {/* Display messages here */}
       </div>
+      
+      {/* Typing indicator */}
+      <p className="text-gray-500">{typingStatus}</p>
 
-      {/* Chat input field */}
-      <div className="mt-4 flex">
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message..."
-          className="border rounded-lg w-full p-2 mr-2"
-        />
-        <button
-          onClick={handleSendMessage}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg">
-          Send
-        </button>
-      </div>
+      {/* Message input */}
+      <input
+        type="text"
+        value={message}
+        onChange={(e) => {
+          setMessage(e.target.value);
+          handleTyping(); // Call handleTyping when user types
+        }}
+        placeholder="Type your message..."
+        className="input"
+      />
     </div>
   );
 }
