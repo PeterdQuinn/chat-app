@@ -1,13 +1,56 @@
 import Link from 'next/link';
 
 export default function Dashboard() {
+  const rooms = ['JavaScript', 'Python', 'React', 'Machine Learning', 'DevOps'];
+
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Welcome to the Dashboard</h1>
-      {/* Remove the <a> tag, and apply className directly to <Link> */}
-      <Link href="/rooms" className="text-blue-500 underline">
-        Go to Chat Rooms
-      </Link>
+    <div className="min-h-screen bg-gray-900 text-gray-200 p-6">
+      {/* Header Section */}
+      <header className="mb-8">
+        <h1 className="text-4xl font-bold mb-2 text-blue-400">Welcome to the Tech Dashboard</h1>
+        <p className="text-gray-400">
+          Dive into the latest tech conversations. Manage your coding rooms, collaborate on projects, and stay up-to-date with the developer community.
+        </p>
+      </header>
+
+      {/* Room List Section */}
+      <section className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Available Coding Rooms</h2>
+        <ul className="space-y-4">
+          {rooms.map((room, index) => (
+            <li key={index} className="bg-gray-800 p-4 rounded-lg shadow-md">
+              <Link href={`/chat/${room.toLowerCase()}`} className="text-blue-400 underline hover:text-blue-500 transition duration-200">
+                {room} Room
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* New Features: Create Room and Profile Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Create Room Feature */}
+        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 className="text-xl font-bold mb-2">Create a New Coding Room</h3>
+          <p className="text-gray-400 mb-4">
+            Spin up a new space for real-time code collaboration. Invite others to discuss algorithms, frameworks, and more.
+          </p>
+          <button className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition duration-300">
+            Create Room
+          </button>
+        </div>
+
+        {/* User Profile Section */}
+        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+          <h3 className="text-xl font-bold mb-2">Developer Profile</h3>
+          <p className="text-gray-400 mb-4">
+            Customize your developer profile, update your programming languages, or tweak your avatar to showcase your skills.
+          </p>
+          <Link href="/profile" className="text-blue-400 underline hover:text-blue-500 transition duration-200">
+            Go to Profile Settings
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

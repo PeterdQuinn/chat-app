@@ -1,21 +1,34 @@
 // components/ChatRoom.js
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 import Message from './Message';
 
+// Create a socket instance (make sure this is outside of the component)
+let socket;
+
 export default function ChatRoom({ roomId }) {
-  const [messages, setMessages] = useState([
-    { sender: 'User1', content: `Welcome to the ${roomId} room!` },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+
+  useEffect(() => {
+    // Connect to the socket server
+    socket = io();
+
+    // Listen for incoming messages
+    socket.on('chat message', (msg) => {
+      setMessages((prevMessages) => [...prevMessages, msg]);
+    });
+
+    return () => {
+      socket.disconnect(); // Disconnect when component unmounts
+    };
+  }, []);
 
   const handleSendMessage = () => {
     if (newMessage.trim() !== '') {
-      const updatedMessages = [
-        ...messages,
-        { sender: 'You', content: newMessage },
-      ];
-      setMessages(updatedMessages);
-      setNewMessage(''); // Clear input after sending
+      // Emit the message to the server
+      socket.emit('chat message', { sender: 'You', content: newMessage });
+      setNewMessage(''); // Clear the input field
     }
   };
 

@@ -1,21 +1,28 @@
-// pages/chat/[roomId].js
+// pages/chat/[room].js
 import { useRouter } from 'next/router';
-import ChatRoom from '../../components/ChatRoom';
 
-export default function ChatRoomPage() {
+export default function ChatRoom() {
   const router = useRouter();
-  const { roomId } = router.query; // Dynamic room ID from the URL
+  const { room } = router.query; // Get the dynamic room name from the URL
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <header className="bg-blue-600 p-4 text-white text-center">
-        <h1 className="text-3xl font-bold">Chat Room: {roomId}</h1>
+    <div className="min-h-screen bg-gray-900 text-gray-200 p-6">
+      <header className="mb-8">
+        <h1 className="text-4xl font-bold text-blue-400">Welcome to the {room} Room</h1>
+        <p className="text-gray-400">
+          You are now chatting about {room}. Share your thoughts, ask questions, and collaborate with others in real-time.
+        </p>
       </header>
-      
-      <main className="p-6">
-        {/* ChatRoom component renders chat messages and input */}
-        <ChatRoom roomId={roomId} />
-      </main>
+
+      {/* Chat box placeholder */}
+      <div className="bg-gray-800 p-6 rounded-lg shadow-lg min-h-[400px]">
+        <p className="text-gray-400 mb-4">Chat messages will go here.</p>
+        <input
+          type="text"
+          className="w-full bg-gray-700 text-gray-200 p-4 rounded-lg"
+          placeholder="Type your message here..."
+        />
+      </div>
     </div>
   );
 }
