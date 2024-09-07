@@ -1,3 +1,4 @@
+import Navbar from '../components/Navbar'; // Import the Navbar component
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/router'; // Import useRouter for navigation
@@ -20,6 +21,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-200 p-6">
+      <Navbar /> {/* Add the Navbar here */}
+
       {/* Header Section */}
       <header className="mb-8">
         <h1 className="text-4xl font-bold mb-2 text-blue-400">Welcome to the Tech Dashboard</h1>
@@ -34,6 +37,7 @@ export default function Dashboard() {
         <ul className="space-y-4">
           {rooms.map((room, index) => (
             <li key={index} className="bg-gray-800 p-4 rounded-lg shadow-md">
+              {/* Fix: Remove <a> and apply class directly to Link */}
               <Link href={`/chat/${room.toLowerCase()}`} className="text-blue-400 underline hover:text-blue-500 transition duration-200">
                 {room} Room
               </Link>

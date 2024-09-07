@@ -1,4 +1,3 @@
-// pages/create-room.js
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -17,17 +16,17 @@ export default function CreateRoom() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 flex justify-center items-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-4">Create a New Chat Room</h1>
-        <p className="text-gray-600 mb-6">
+    <div className="min-h-screen bg-gray-900 p-6 flex justify-center items-center">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+        <h1 className="text-3xl font-bold mb-6 text-blue-400">Create a New Chat Room</h1>
+        <p className="text-gray-400 mb-6">
           Enter a name for the new chat room and invite others to join!
         </p>
 
         {/* Input for the room name */}
         <input
           type="text"
-          className="w-full p-3 bg-gray-200 rounded-lg mb-4"
+          className="w-full p-3 bg-gray-700 text-white rounded-lg mb-4 placeholder-gray-400"
           placeholder="Enter room name"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value)}
