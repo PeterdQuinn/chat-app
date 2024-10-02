@@ -26,6 +26,7 @@ export default async function SocketHandler(req, res) {
   if (!res.socket.server.io) {
     console.log('Initializing Socket.io server...');
     const io = new Server(res.socket.server, {
+      path: '/api/socket', // Add the correct path here
       cors: {
         origin: '*', // Be careful with this in production
         methods: ['GET', 'POST'],
