@@ -1,71 +1,72 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 
 let socket;
 
-export default function ChatRoom() {
-  const router = useRouter();
-  const { room } = router.query; // Get the room name from the URL
-  const [message, setMessage] = useState(''); // Current message being typed
-  const [messages, setMessages] = useState([]); // All messages in the chat room
+export default function ChatRoom({ roomId }) {
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    // Connect to the Socket.IO server
+    socketInitializer();
+    return () => {
+      if (socket) socket.disconnect();
+    };
+  }, [roomId]);
+
+  const socketInitializer = async () => {
+    await fetch('/api/socket');
     socket = io();
 
-    // Listen for incoming messages
-    socket.on('receiveMessage', (messageData) => {
-      setMessages((prevMessages) => [...prevMessages, messageData]);
+    socket.on('connect', () => {
+      console.log('Connected to server');
+      socket.emit('join-room', roomId);
     });
 
-    return () => {
-      socket.disconnect(); // Clean up on component unmount
-    };
-  }, []);
+    socket.on('message', (message) => {
+      setMessages((prev) => [...prev, message]);
+    });
+  };
 
-  // Function to handle sending a message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const sendMessage = () => {
-    if (message.trim()) {
-      const messageData = { room, message }; // You can also add user info here
-      socket.emit('sendMessage', messageData); // Send the message to the server
-      setMessages((prevMessages) => [...prevMessages, messageData]); // Update local state
-      setMessage(''); // Clear the input field
+    if (inputMessage.trim()) {
+      socket.emit('message', { text: inputMessage, room: roomId });
+      setInputMessage('');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200 p-6">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold">Welcome to the {room} Room</h1>
-        <p className="mt-4 text-gray-400">Start chatting with others in the {room} room.</p>
-      </header>
-
-      {/* Chat Messages */}
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-4 min-h-[400px] overflow-y-scroll">
+    <div className="flex flex-col h-screen bg-gray-900 text-white">
+      <div className="flex-grow overflow-y-auto p-4 space-y-2">
         {messages.map((msg, index) => (
-          <div key={index} className="mb-2">
-            <strong>{msg.room}: </strong> {msg.message}
+          <div key={index} className="bg-gray-800 p-2 rounded-lg">
+            {msg.text}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
-
-      {/* Chat Input */}
-      <div className="flex items-center">
-        <input
-          type="text"
-          className="w-full bg-gray-700 text-gray-200 p-4 rounded-lg mr-2"
-          placeholder="Type your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()} // Send on Enter key press
-        />
-        <button
-          className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
-          onClick={sendMessage}
-        >
-          Send
-        </button>
+      <div className="p-4 bg-gray-800">
+        <div className="flex">
+          <input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="Type a message..."
+            className="flex-grow px-3 py-2 bg-gray-700 text-white rounded-l-lg focus:outline-none"
+          />
+          <button 
+            onClick={sendMessage} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 focus:outline-none"
+          >
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,54 +1,57 @@
-import { useEffect, useState } from 'react';
-import io from 'socket.io-client'; // Ensure socket.io is set up
+import { useState, useEffect } from 'react';
+import io from 'socket.io-client';
+
 let socket;
 
 export default function ChatRoom() {
   const [message, setMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingStatus, setTypingStatus] = useState(''); // To display typing status
+  const [chat, setChat] = useState([]);
 
   useEffect(() => {
-    socketInitializer();
+    socket = io(); // Initialize socket connection
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
+
+    // Listen for incoming messages
+    socket.on('message', (messageData) => {
+      setChat((prevChat) => [...prevChat, messageData]);
+    });
+
+    // Clean up on component unmount
+    return () => socket.disconnect();
   }, []);
 
-  const socketInitializer = async () => {
-    await fetch('/api/socket');
-    socket = io();
-
-    // Listen for the typing event from server
-    socket.on('displayTyping', (data) => {
-      setTypingStatus(data ? `${data.username} is typing...` : '');
-    });
-  };
-
-  // Emit typing event when the user types in the message input
-  const handleTyping = () => {
-    socket.emit('typing', { username: 'User1', typing: true });
-    setTimeout(() => {
-      socket.emit('typing', { username: 'User1', typing: false });
-    }, 2000); // Emit false after 2 seconds of no typing
+  // Function to send messages
+  const sendMessage = () => {
+    if (message.trim()) {
+      const messageData = { user: 'User1', text: message }; // Customize user info
+      socket.emit('message', messageData); // Emit to server
+      setChat((prevChat) => [...prevChat, messageData]); // Add to local chat
+      setMessage(''); // Clear input
+    }
   };
 
   return (
     <div className="chat-room">
       <div className="messages">
-        {/* Display messages here */}
+        {chat.map((msg, index) => (
+          <div key={index}>
+            <strong>{msg.user}:</strong> {msg.text}
+          </div>
+        ))}
       </div>
-      
-      {/* Typing indicator */}
-      <p className="text-gray-500">{typingStatus}</p>
-
-      {/* Message input */}
       <input
         type="text"
         value={message}
-        onChange={(e) => {
-          setMessage(e.target.value);
-          handleTyping(); // Call handleTyping when user types
-        }}
-        placeholder="Type your message..."
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Type a message..."
         className="input"
       />
+      <button onClick={sendMessage} className="send-button">
+        Send
+      </button>
     </div>
   );
 }

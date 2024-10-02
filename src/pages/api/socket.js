@@ -1,28 +1,54 @@
 import { Server } from 'socket.io';
+import Cors from 'cors';
 
-export default function SocketHandler(req, res) {
-  if (res.socket.server.io) {
-    console.log('Socket is already running');
-    res.end();
-    return;
-  }
+// Initialize CORS middleware
+const cors = Cors({
+  methods: ['GET', 'POST'],
+  origin: '*', // Be careful with this in production
+});
 
-  const io = new Server(res.socket.server);
-  res.socket.server.io = io;
-
-  io.on('connection', (socket) => {
-    console.log('A user connected');
-
-    // Listen for typing event from a user
-    socket.on('typing', (data) => {
-      // Broadcast the typing status to other users
-      socket.broadcast.emit('displayTyping', data.typing ? data : null);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('A user disconnected');
+// Helper function to run CORS middleware
+function runMiddleware(req, res, fn) {
+  return new Promise((resolve, reject) => {
+    fn(req, res, (result) => {
+      if (result instanceof Error) {
+        return reject(result);
+      }
+      return resolve(result);
     });
   });
+}
 
+export default async function SocketHandler(req, res) {
+  // Run CORS
+  await runMiddleware(req, res, cors);
+
+  if (!res.socket.server.io) {
+    console.log('Initializing Socket.io server...');
+    const io = new Server(res.socket.server, {
+      cors: {
+        origin: '*', // Be careful with this in production
+        methods: ['GET', 'POST'],
+      },
+    });
+
+    res.socket.server.io = io;
+
+    io.on('connection', (socket) => {
+      console.log('New user connected:', socket.id);
+
+      // Broadcast messages to all users
+      socket.on('message', (messageData) => {
+        console.log('Received message:', messageData);
+        io.emit('message', messageData); // Send the message to everyone
+      });
+
+      socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+      });
+    });
+  } else {
+    console.log('Socket.io server already running');
+  }
   res.end();
 }
